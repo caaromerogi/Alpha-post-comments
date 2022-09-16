@@ -39,8 +39,11 @@ public class CommandHandle {
                 POST("/create/post").and(accept(MediaType.APPLICATION_JSON)),
                 request -> useCase.apply(request.bodyToMono(CreatePostCommand.class))
                         .collectList()
-                        .flatMap(domainEvents -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON)
-                                .bodyValue(domainEvents))
+                        .flatMap(domainEvents ->{
+                            logger.info("Post successfully created");
+                            return  ServerResponse.ok().contentType(MediaType.APPLICATION_JSON)
+                                    .bodyValue(domainEvents);
+                        })
                         .onErrorResume(error -> {
                             logger.error(error.getMessage());
                             return ServerResponse.badRequest().build();
@@ -55,8 +58,11 @@ public class CommandHandle {
                 POST("/add/comment").and(accept(MediaType.APPLICATION_JSON)),
                 request -> useCase.apply(request.bodyToMono(AddCommentCommand.class))
                         .collectList()
-                        .flatMap(domainEvents -> ServerResponse.ok().contentType(MediaType.APPLICATION_JSON)
-                                .bodyValue(domainEvents))
+                        .flatMap(domainEvents ->{
+                            logger.info("Comment successfully added");
+                            return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON)
+                                    .bodyValue(domainEvents);
+                        } )
                         .onErrorResume(error ->{
                             logger.error(error.getMessage());
                             return ServerResponse.badRequest().build();
