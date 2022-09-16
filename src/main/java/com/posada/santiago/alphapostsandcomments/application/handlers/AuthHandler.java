@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
@@ -23,6 +24,7 @@ public class AuthHandler {
 
     private final static Logger logger= LoggerFactory.getLogger(AuthHandler.class);
     @Bean
+    @CrossOrigin("*")
     RouterFunction<ServerResponse> createUser(CreateUserUseCase createUserUseCase){
         return route(POST("/auth/save/{role}"),
                 request -> request.bodyToMono(User.class)
@@ -38,6 +40,7 @@ public class AuthHandler {
     }
 
     @Bean
+    @CrossOrigin("*")
     RouterFunction<ServerResponse> loginRouter(LoginUseCase loginUseCase){
         return route(POST("/auth/login"),
                 request -> loginUseCase.logIn(request.bodyToMono(AuthenticationRequest.class))
