@@ -3,7 +3,10 @@ package com.posada.santiago.alphapostsandcomments.application.adapters.repositor
 import co.com.sofka.domain.generic.DomainEvent;
 import com.google.gson.Gson;
 import com.posada.santiago.alphapostsandcomments.application.generic.models.StoredEvent;
+import com.posada.santiago.alphapostsandcomments.application.handlers.CommandHandle;
 import com.posada.santiago.alphapostsandcomments.business.gateways.DomainEventRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.mongodb.core.ReactiveMongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -16,6 +19,8 @@ import java.util.Date;
 
 @Repository
 public class MongoEventStoreRepository implements DomainEventRepository {
+
+    private final static Logger logger= LoggerFactory.getLogger(MongoEventStoreRepository.class);
 
     private final ReactiveMongoTemplate template;
 
@@ -33,11 +38,14 @@ public class MongoEventStoreRepository implements DomainEventRepository {
                 .sort(Comparator.comparing(event -> event.getStoredEvent().getOccurredOn()))//Ordenados por fecha
                 .map(storeEvent -> {
                     try {
+                        logger.info("Domain event found by id");
                         return (DomainEvent) gson.fromJson(storeEvent.getStoredEvent().getEventBody(), Class.forName(storeEvent.getStoredEvent().getTypeName()));
                     } catch (ClassNotFoundException e) {
                         e.printStackTrace();
+                        logger.error("Cannot find the domain event");
                         throw new IllegalStateException("couldnt find domain event");
                     }
+
                 });
     }
 
@@ -49,9 +57,11 @@ public class MongoEventStoreRepository implements DomainEventRepository {
         return template.save(eventStored)
                 .map(storeEvent -> {
                     try {
+                        logger.info("Domain event saved successfully");
                         return (DomainEvent) gson.fromJson(storeEvent.getStoredEvent().getEventBody(), Class.forName(storeEvent.getStoredEvent().getTypeName()));
                     } catch (ClassNotFoundException e) {
                         e.printStackTrace();
+                        logger.error("The domain even couldnt be saved");
                         throw new IllegalStateException("couldnt find domain event");
                     }
                 });

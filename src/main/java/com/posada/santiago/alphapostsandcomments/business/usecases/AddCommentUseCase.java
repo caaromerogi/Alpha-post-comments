@@ -1,6 +1,7 @@
 package com.posada.santiago.alphapostsandcomments.business.usecases;
 
 import co.com.sofka.domain.generic.DomainEvent;
+import com.posada.santiago.alphapostsandcomments.application.handlers.CommandHandle;
 import com.posada.santiago.alphapostsandcomments.business.gateways.DomainEventRepository;
 import com.posada.santiago.alphapostsandcomments.business.gateways.EventBus;
 import com.posada.santiago.alphapostsandcomments.business.generic.UseCaseForCommand;
@@ -10,13 +11,18 @@ import com.posada.santiago.alphapostsandcomments.domain.values.Author;
 import com.posada.santiago.alphapostsandcomments.domain.values.CommentId;
 import com.posada.santiago.alphapostsandcomments.domain.values.Content;
 import com.posada.santiago.alphapostsandcomments.domain.values.PostId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Component
-public class AddCommentUseCase extends UseCaseForCommand<AddCommentCommand> {
+public class
 
+AddCommentUseCase extends UseCaseForCommand<AddCommentCommand> {
+
+    private final static Logger logger= LoggerFactory.getLogger(AddCommentUseCase.class);
     private final DomainEventRepository repository;
     private final EventBus bus;
 
@@ -36,7 +42,11 @@ public class AddCommentUseCase extends UseCaseForCommand<AddCommentCommand> {
                     return post.getUncommittedChanges();
                 })
                 .map(event -> {bus.publish(event);return event;})
-                .flatMap(event -> repository.saveEvent(event)));
+                .flatMap(event -> repository.saveEvent(event)))
+                .onErrorResume(error -> {
+                    logger.error("Use case Add comment failed");
+                    return Flux.just();
+                });
 
     }
 }
